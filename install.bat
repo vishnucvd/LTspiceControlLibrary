@@ -1,4 +1,5 @@
 @echo off
+goto MODERN_INSTALL
 set LIB_ID=LTspiceControlLibrary
 set LIB_NAME=LTspice Control Library
 
@@ -58,6 +59,135 @@ xcopy "%~dp0%SUB%" "%LTSPICE_DIR%%SUB%\" /S /E /Y /R >nul && echo copy "%~dp0%SU
 xcopy "%~dp0%SYM%" "%LTSPICE_DIR%%SYM%\" /S /E /Y /R >nul && echo copy "%~dp0%SYM%" to "%LTSPICE_DIR%%SYM%".
 goto END
 
-:END
+goto OLD_END
+
+:MODERN_INSTALL
+setlocal
+
+set LIB_ID=LTspiceControlLibrary
+set LIB_NAME=LTspice Control Library
+
+echo.
+echo ================================================================================
+echo   %LIB_NAME%
+echo ================================================================================
+echo.
+echo   1. Install (copy the library to the LTspice directory)
+echo   2. Uninstall (remove the library from the LTspice directory)
+echo.
+echo   0. Quit
+echo.
+echo NOTE:
+echo   Install LTspice before running this script.
+echo   No administrator rights required.
+echo.
+
+:: Handle input
+if "%1"=="" (
+  set /p ORDER_NO="Enter number (0-2): "
+) else (
+  echo Enter number (0-2^): %1
+  set ORDER_NO=%1
+)
+
+echo.
+if "%ORDER_NO%"=="1" goto MODERN_GET_DOCS
+if "%ORDER_NO%"=="2" goto MODERN_GET_DOCS
+goto OLD_END
+
+:MODERN_GET_DOCS
+set DATA=
+
+:: === Method 1: PowerShell (preferred, works for OneDrive + company folders) ===
+for /f "delims=" %%i in ('powershell -NoProfile -Command "[Environment]::GetFolderPath(''MyDocuments'')" 2^>nul') do set DATA=%%i
+
+:: === Method 2: Registry fallback ===
+if not defined DATA (
+  for /f "tokens=2,*" %%A in ('reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" /v Personal 2^>nul') do (
+    set DATA=%%B
+  )
+)
+
+:: Expand variables like %USERPROFILE%
+if defined DATA (
+  call set DATA=%DATA%
+)
+
+:: === Method 3: Default fallback ===
+if not defined DATA (
+  set DATA=%USERPROFILE%\Documents
+)
+
+:: Final validation
+if not exist "%DATA%" (
+  echo Could not locate Documents folder.
+  echo Tried PowerShell, Registry, and default path.
+  goto OLD_END
+)
+
+echo Detected Documents folder:
+echo   %DATA%
+echo.
+
+goto MODERN_CHECK_LTSPICE
+
+:MODERN_CHECK_LTSPICE
+:: Try modern LTspice
+set LTSPICE_DIR=%DATA%\LTspice\
+if exist "%LTSPICE_DIR%" goto MODERN_FOUND
+
+:: Try older LTspice XVII
+set LTSPICE_DIR=%DATA%\LTspiceXVII\
+if exist "%LTSPICE_DIR%" goto MODERN_FOUND
+
+:: Try classic LTspice IV (Program Files)
+set LTSPICE_DIR=%ProgramFiles%\LTC\LTspiceIV\
+if exist "%LTSPICE_DIR%" goto MODERN_FOUND
+
+echo Could not find LTspice directory.
+echo Checked:
+echo   %DATA%\LTspice\
+echo   %DATA%\LTspiceXVII\
+echo   %ProgramFiles%\LTC\LTspiceIV\
+
+goto OLD_END
+
+:MODERN_FOUND
+set SUB=lib\sub\%LIB_ID%
+set SYM=lib\sym\%LIB_ID%
+
+:: Always uninstall first (safe overwrite)
+if exist "%LTSPICE_DIR%%SUB%" (
+  rmdir /S /Q "%LTSPICE_DIR%%SUB%"
+  echo Removed "%LTSPICE_DIR%%SUB%"
+)
+
+if exist "%LTSPICE_DIR%%SYM%" (
+  rmdir /S /Q "%LTSPICE_DIR%%SYM%"
+  echo Removed "%LTSPICE_DIR%%SYM%"
+)
+
+if "%ORDER_NO%"=="1" goto MODERN_INSTALL
+
+goto OLD_END
+
+:MODERN_INSTALL
+xcopy "%~dp0%SUB%" "%LTSPICE_DIR%%SUB%\" /S /E /Y /R /I >nul
+if %ERRORLEVEL%==0 (
+  echo Copied "%SUB%" to "%LTSPICE_DIR%%SUB%"
+) else (
+  echo Failed to copy "%SUB%"
+)
+
+xcopy "%~dp0%SYM%" "%LTSPICE_DIR%%SYM%\" /S /E /Y /R /I >nul
+if %ERRORLEVEL%==0 (
+  echo Copied "%SYM%" to "%LTSPICE_DIR%%SYM%"
+) else (
+  echo Failed to copy "%SYM%"
+)
+
+goto OLD_END
+
+:OLD_END
 echo.
 if "%1%"=="" pause
