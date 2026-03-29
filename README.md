@@ -35,9 +35,26 @@ More Information
 Version History
 ===============
 - 2026-03-28: Added modern installer auto-detection for LTspice XIX/XX; no admin rights required; combined legacy/modern workflows.
+- 2023-01-28:Miscelaneous updates (@rtbruce)
+  Change comment in le.asy from 'greater than' to 'less than'
+  Change comment in ControlElements.md from 'greater than' to 'less than'
+  Add ComplementaryBuffer.asc & .plt showing how complementary signals are generated
+  Add .pdf file explaining ComplementaryBufferwithDeadtime
+  Add ZOH_Tester.asc & .plt to test the Zero Order Hold Element
+  Add the PulseModulations_Tester.asc & .plt to demonstrate the operation of the
+	ComplementaryBufferwithDeadtime
+  Add the PulseTimer_Tester.asc & .plt
+  Update math.lib to use a single .inc statement for Math.inc
+  Update PulseModulations.lib for PWM, ComplementaryPWM, 3phasecomplementaryPWM,
+	ComplementaryBufferwithDeadtime, and PulseTimer_Tester
+  Update the comment in the .asy file for less than or equal to
+  Add a new symbol for ComplementaryPWM
+- 2018-12-15: Added variable frequency PWM generator and an example. (@carllacan)
 - 2014-02-06: Existing LTspice IV/XVII installer scripts (legacy behavior and registry-based path lookup).
 
 Authors
 =======
-- Original author     : Hiroshi Kaneda (@kanedahiroshi)
-- Maintainer / update : Vishnu CV (@vishnucvd) (current patch)
+- Author      : Hiroshi Kaneda (@kanedahiroshi)
+- Contributor : Carles Llàcer (@carllacan)
+- Contributor : Bruce Graham (@rtbruce)
+- Contributor : Vishnu CV (@vishnucvd)
