@@ -132,25 +132,13 @@ echo.
 goto MODERN_CHECK_LTSPICE
 
 :MODERN_CHECK_LTSPICE
-:: Try modern LTspice
-set LTSPICE_DIR=%DATA%\LTspice\
-if exist "%LTSPICE_DIR%" goto MODERN_FOUND
+:: Use specified LTspice directory with automatic username detection
+set LTSPICE_DIR=C:\Users\%USERNAME%\AppData\Local\LTspice\
 
-:: Try older LTspice XVII
-set LTSPICE_DIR=%DATA%\LTspiceXVII\
-if exist "%LTSPICE_DIR%" goto MODERN_FOUND
-
-:: Try classic LTspice IV (Program Files)
-set LTSPICE_DIR=%ProgramFiles%\LTC\LTspiceIV\
-if exist "%LTSPICE_DIR%" goto MODERN_FOUND
-
-echo Could not find LTspice directory.
-echo Checked:
-echo   %DATA%\LTspice\
-echo   %DATA%\LTspiceXVII\
-echo   %ProgramFiles%\LTC\LTspiceIV\
-
-goto OLD_END
+if not exist "%LTSPICE_DIR%" (
+  echo Could not find LTspice directory at %LTSPICE_DIR%
+  goto OLD_END
+)
 
 :MODERN_FOUND
 set SUB=lib\sub\%LIB_ID%
@@ -165,6 +153,11 @@ if exist "%LTSPICE_DIR%%SUB%" (
 if exist "%LTSPICE_DIR%%SYM%" (
   rmdir /S /Q "%LTSPICE_DIR%%SYM%"
   echo Removed "%LTSPICE_DIR%%SYM%"
+)
+
+if exist "%LTSPICE_DIR%examples" (
+  rmdir /S /Q "%LTSPICE_DIR%examples"
+  echo Removed "%LTSPICE_DIR%examples"
 )
 
 if "%ORDER_NO%"=="1" goto MODERN_INSTALL
@@ -185,6 +178,38 @@ if %ERRORLEVEL%==0 (
 ) else (
   echo Failed to copy "%SYM%"
 )
+
+echo.
+echo ================================================================================
+echo   Do you want to copy example files to the default folder?
+echo ================================================================================
+echo.
+echo   1. Yes, copy examples
+echo   2. No, skip examples
+echo.
+set /p EXAMPLES_CHOICE="Enter choice (1-2): "
+
+if "%EXAMPLES_CHOICE%"=="1" (
+  xcopy "%~dp0examples" "%LTSPICE_DIR%examples\" /S /E /Y /R /I >nul
+  if %ERRORLEVEL%==0 (
+    echo Copied "examples" to "%LTSPICE_DIR%examples"
+  ) else (
+    echo Failed to copy "examples"
+  )
+) else (
+  echo Skipping examples copy.
+)
+
+echo.
+echo ================================================================================
+echo   THANK YOU FOR INSTALLING LTSPICE CONTROL LIBRARY!
+echo ================================================================================
+echo.
+echo   The library has been successfully installed.
+echo   You can now use the control components in your LTspice simulations.
+echo.
+echo   For more information, visit the project repository.
+echo ================================================================================
 
 goto OLD_END
 
